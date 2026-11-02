@@ -1,0 +1,58 @@
+{
+  "name": "portfolio-candles",
+  "productName": "Portfolio Candles",
+  "version": "1.6.0",
+  "description": "Desktop candlestick charts with live portfolio updates",
+  "main": "main.js",
+  "author": "Portfolio Candles",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win nsis --publish never"
+  },
+  "dependencies": {
+    "lightweight-charts": "4.2.3",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.cosmi.portfoliocandles",
+    "productName": "Portfolio Candles",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "preload-widget.js",
+      "lib/**/*",
+      "renderer/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "assets/send-behind.exe",
+      "assets/win-frame.exe"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Portfolio Candles"
+    }
+  },
+  "allowScripts": {
+    "electron@33.4.11": true
+  }
+}

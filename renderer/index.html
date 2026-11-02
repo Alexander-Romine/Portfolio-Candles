@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'" />
+  <title>Portfolio Candles</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand__mark" aria-hidden="true">
+        <i class="candle candle--up"></i>
+        <i class="candle candle--down"></i>
+      </span>
+      <span class="brand__name">Portfolio&nbsp;Candles</span>
+    </div>
+
+    <div id="statusPill" class="pill pill--pending" title="Data source">
+      <span class="pill__dot"></span>
+      <span id="statusText">CONNECTING</span>
+    </div>
+
+    <div class="topbar__gap"></div>
+    <span id="sessionClock" class="topbar__clock">—</span>
+    <button id="btnWidget" class="btn btn--ghost" type="button" title="Pin the portfolio as a slim always-on-top widget on the right edge of your desktop">Widget</button>
+    <button id="btnSettings" class="btn btn--ghost" type="button" title="Settings">Settings</button>
+  </header>
+
+  <main class="layout">
+    <aside class="side">
+      <section class="pf">
+        <div class="pf__picker">
+          <select id="portfolioSelect" class="pf__select" aria-label="Active portfolio"></select>
+          <span class="pf__caret" aria-hidden="true">▾</span>
+        </div>
+        <div class="pf__actions">
+          <button class="minibtn" id="btnNewPf" title="New portfolio" type="button">+</button>
+          <button class="minibtn" id="btnRenamePf" title="Rename portfolio" type="button">&#x270E;</button>
+          <button class="minibtn minibtn--del" id="btnDeletePf" title="Delete portfolio" type="button">&times;</button>
+        </div>
+        <div class="pf__meta"><span id="pfCount">—</span></div>
+      </section>
+
+      <section class="summary">
+        <div class="summary__row"><span>Total value</span><strong id="totalValue">—</strong></div>
+        <div class="summary__row"><span>Day change</span><strong id="dayChange">—</strong></div>
+        <div class="summary__row"><span>Overall gain / loss</span><strong id="totalPl">—</strong></div>
+        <div class="summary__row summary__row--muted"><span>Cost basis</span><strong id="invested">—</strong></div>
+      </section>
+
+      <section class="positions">
+        <div class="positions__head">
+          <span>Symbol</span>
+          <span class="num">Last</span>
+          <span class="num">Chg</span>
+          <span class="num">Value</span>
+        </div>
+        <div id="positionsList" class="positions__list"></div>
+        <div id="emptyPortfolio" class="empty" hidden>No positions yet.<br />Add one to start tracking.</div>
+      </section>
+
+      <button id="btnAdd" class="btn btn--primary btn--block" type="button">+&nbsp; Add position</button>
+    </aside>
+
+    <section class="pane">
+      <div class="pane__head">
+        <div class="instrument">
+          <span id="chartSymbol" class="instrument__symbol">—</span>
+          <span id="chartName" class="instrument__name">Select a position</span>
+        </div>
+        <div class="quote">
+          <span id="chartPrice" class="quote__price">—</span>
+          <span id="chartChange" class="quote__change">—</span>
+        </div>
+        <div class="topbar__gap"></div>
+        <div id="tfButtons" class="tf" role="tablist" aria-label="Chart timeframe">
+          <button class="tf__btn is-active" data-tf="1D" type="button">1D</button>
+          <button class="tf__btn" data-tf="5D" type="button">5D</button>
+          <button class="tf__btn" data-tf="1M" type="button">1M</button>
+          <button class="tf__btn" data-tf="6M" type="button">6M</button>
+          <button class="tf__btn" data-tf="1Y" type="button">1Y</button>
+          <button class="tf__btn" data-tf="5Y" type="button">5Y</button>
+        </div>
+      </div>
+
+      <div id="ohlcLegend" class="legend" aria-hidden="true"></div>
+      <div id="chart" class="chart"></div>
+
+      <div class="pane__foot">
+        <span id="dataSource">—</span>
+        <span id="lastUpdate">Waiting for data…</span>
+      </div>
+    </section>
+  </main>
+
+  <!-- Settings -->
+  <div class="overlay" id="settingsModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <div class="modal__head">
+        <h2 id="settingsTitle">Settings</h2>
+        <button class="modal__x" data-close type="button" aria-label="Close">×</button>
+      </div>
+      <div class="modal__body">
+        <div class="field">
+          <label class="field__label">Data mode</label>
+          <label class="radio">
+            <input type="radio" name="mode" value="auto" checked />
+            <span><b>Automatic</b> — live Finnhub prices when a key is set, otherwise delayed quotes.</span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="mode" value="demo" />
+            <span><b>Simulated demo</b> — fake live ticks for trying the app (chart history stays real).</span>
+          </label>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="apiKey">Finnhub API key</label>
+          <div class="row">
+            <input type="password" id="apiKey" placeholder="Paste your finnhub.io API key" autocomplete="off" spellcheck="false" />
+            <button class="btn btn--ghost" id="btnToggleKey" type="button">Show</button>
+          </div>
+          <p class="hint">
+            No key yet?
+            <a href="https://finnhub.io/register" target="_blank" rel="noreferrer">Get a free key at finnhub.io</a>
+            — it enables true real-time US quotes.
+          </p>
+        </div>
+
+        <div class="field field--split">
+          <div class="field__half">
+            <label class="field__label" for="pollSeconds">Quote refresh (seconds)</label>
+            <input type="number" id="pollSeconds" min="15" max="300" step="5" />
+          </div>
+          <div class="field__half field__half--right">
+            <button class="btn btn--ghost" id="btnTest" type="button">Test connection</button>
+            <p class="hint" id="testResult">&nbsp;</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="radio">
+            <input type="checkbox" id="startWin" />
+            <span><b>Start with Windows</b> — launch quietly in the tray when you sign in.</span>
+          </label>
+          <p class="hint">Closing the window hides it in the tray — right-click the tray icon to switch portfolios or quit.</p>
+        </div>
+      </div>
+      <div class="modal__foot">
+        <button class="btn btn--ghost" data-close type="button">Cancel</button>
+        <button class="btn btn--primary" id="btnSaveSettings" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add / edit position -->
+  <div class="overlay" id="positionModal" hidden>
+    <div class="modal modal--sm" role="dialog" aria-modal="true" aria-labelledby="posTitle">
+      <div class="modal__head">
+        <h2 id="posTitle">Add position</h2>
+        <button class="modal__x" data-close type="button" aria-label="Close">×</button>
+      </div>
+      <div class="modal__body">
+        <div class="field">
+          <label class="field__label" for="posSymbol">Symbol</label>
+          <input id="posSymbol" placeholder="AAPL" maxlength="12" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="field">
+          <span class="field__label">Track by</span>
+          <div class="tf posmode" id="posMode" role="group" aria-label="Tracking mode">
+            <button type="button" class="tf__btn is-active" data-mode="shares">Shares</button>
+            <button type="button" class="tf__btn" data-mode="amount">Amount ($)</button>
+          </div>
+        </div>
+        <div class="fieldgroup" id="posSharesGroup">
+          <div class="field">
+            <label class="field__label" for="posQty">Shares</label>
+            <input id="posQty" type="number" min="0" step="any" placeholder="10" />
+          </div>
+          <div class="field">
+            <label class="field__label" for="posCost">Average cost per share</label>
+            <input id="posCost" type="number" min="0" step="any" placeholder="175.50" />
+          </div>
+        </div>
+        <div class="field" id="posAmountGroup" hidden>
+          <label class="field__label" for="posAmount">Amount you own (USD)</label>
+          <input id="posAmount" type="number" min="0" step="any" placeholder="5000" />
+          <p class="hint">Priced at the current market price — day change and totals update live. Overall gain/loss starts at 0% since no cost history is entered.</p>
+        </div>
+        <p class="error" id="posError" hidden></p>
+        <button class="btn btn--danger" id="btnDeletePos" type="button" hidden>Remove position</button>
+      </div>
+      <div class="modal__foot">
+        <button class="btn btn--ghost" data-close type="button">Cancel</button>
+        <button class="btn btn--primary" id="btnSavePos" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New / rename portfolio -->
+  <div class="overlay" id="pfModal" hidden>
+    <div class="modal modal--sm" role="dialog" aria-modal="true" aria-labelledby="pfTitle">
+      <div class="modal__head">
+        <h2 id="pfTitle">New portfolio</h2>
+        <button class="modal__x" data-close type="button" aria-label="Close">×</button>
+      </div>
+      <div class="modal__body">
+        <div class="field">
+          <label class="field__label" for="pfName">Portfolio name</label>
+          <input id="pfName" placeholder="e.g. Long term, Dividends, YOLO" maxlength="40" autocomplete="off" />
+        </div>
+        <p class="error" id="pfError" hidden></p>
+      </div>
+      <div class="modal__foot">
+        <button class="btn btn--ghost" data-close type="button">Cancel</button>
+        <button class="btn btn--primary" id="btnSavePf" type="button">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="vendor/lightweight-charts.standalone.production.js"></script>
+  <script src="chart.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

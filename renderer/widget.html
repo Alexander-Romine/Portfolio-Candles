@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'"
+    />
+    <title>Widget</title>
+    <link rel="stylesheet" href="widget.css" />
+  </head>
+  <body>
+    <div class="wg">
+      <header class="wg__head" id="wgHead" title="Double-click to open the app">
+        <div class="wg__top">
+          <span class="wg__name" id="wgName">—</span>
+          <button class="wg__x" id="wgClose" type="button" title="Remove widget">&times;</button>
+        </div>
+        <div class="wg__totals">
+          <span class="wg__value" id="wgValue">—</span>
+          <span class="wg__chg flat" id="wgChg">—</span>
+        </div>
+      </header>
+      <div class="wg__rows" id="wgRows"></div>
+      <footer class="wg__foot">
+        <span>click a row to open its chart</span>
+        <button class="wg__open" id="wgOpen" type="button">Open app</button>
+      </footer>
+    </div>
+    <script src="widget.js"></script>
+  </body>
+</html>

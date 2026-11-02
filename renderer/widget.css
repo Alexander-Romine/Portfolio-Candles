@@ -1,0 +1,218 @@
+:root {
+  --up: #2fd4a7;
+  --down: #ff6b6b;
+  --text: #e4e9f4;
+  --text-dim: #98a1b6;
+  --text-faint: #6c7590;
+  --glass-border: rgba(255, 255, 255, 0.16);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--text);
+  user-select: none;
+  cursor: default;
+  /* never fully transparent: transparent pixels are click-through */
+  background: rgba(0, 0, 0, 0.01);
+  /* keeps tiny text readable when a bright desktop shows through */
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.wg {
+  display: flex;
+  flex-direction: column;
+  /* min (not fixed) height: JS measures real content and the window grows
+     downward to fit every row (see widget.js syncHeight) */
+  min-height: 100vh;
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.012)), rgba(11, 15, 25, 0.26);
+  backdrop-filter: blur(50px) saturate(185%);
+  -webkit-backdrop-filter: blur(50px) saturate(185%);
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+/* ---------- header (drag handle) ---------- */
+
+.wg__head {
+  -webkit-app-region: drag;
+  padding: 10px 10px 9px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0));
+  cursor: grab;
+}
+
+.wg__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.wg__name {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wg__x {
+  -webkit-app-region: no-drag;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wg__x:hover {
+  background: rgba(255, 107, 107, 0.2);
+  color: var(--down);
+}
+
+.wg__totals {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-top: 3px;
+}
+
+.wg__value {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
+  text-shadow: 0 0 16px rgba(41, 98, 255, 0.4), 0 1px 8px rgba(0, 0, 0, 0.5);
+}
+
+.wg__chg {
+  font-size: 10.5px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- rows ---------- */
+
+.wg__rows {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 5px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
+}
+
+.wg__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 62px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.wg__row:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.wg__row + .wg__row {
+  margin-top: 1px;
+}
+
+.wg__sym {
+  font-weight: 650;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.wg__px,
+.wg__pct {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.wg__px {
+  color: var(--text);
+}
+
+.wg__pct {
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.wg__empty {
+  padding: 18px 10px;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+/* ---------- footer ---------- */
+
+.wg__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px 8px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 10px;
+  color: var(--text-faint);
+}
+
+.wg__open {
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.08);
+  color: #8aabff;
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 650;
+  border-radius: 8px;
+  padding: 3px 9px;
+  cursor: pointer;
+}
+
+.wg__open:hover {
+  background: rgba(41, 98, 255, 0.18);
+  border-color: rgba(41, 98, 255, 0.5);
+  color: #9db9ff;
+}
+
+/* ---------- helpers ---------- */
+
+.up { color: var(--up); }
+.down { color: var(--down); }
+.flat { color: var(--text-dim); }
+
+.wg__rows::-webkit-scrollbar { width: 7px; }
+.wg__rows::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 7px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.wg__rows::-webkit-scrollbar-track { background: transparent; }
